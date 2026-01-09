@@ -41,7 +41,7 @@
 #include "rawsend.h"
 #include "signals.h"
 #include "srcinfo.h"
-
+#include "portmap.h"
 #ifndef PROGNAME
 #define PROGNAME "fakesip"
 #endif /* PROGNAME */
@@ -72,6 +72,9 @@ static void print_usage(const char *name)
         "  -k                 kill the running process\n"
         "  -s                 enable silent mode\n"
         "  -w <file>          write log to <file> instead of stderr\n"
+        "\n"
+        "Port Filters:\n"
+        "  -p <ports>         comma-separated whitelist ports eq 53\n"
         "\n"
         "Advanced Options:\n"
         "  -f                 skip firewall rules\n"
@@ -124,7 +127,7 @@ int main(int argc, char *argv[])
 
     plinfo_cnt = iface_cnt = 0;
 
-    while ((opt = getopt(argc, argv, "0146ab:dfgi:km:n:r:st:u:w:x:y:z")) !=
+    while ((opt = getopt(argc, argv, "0146ab:dfgi:km:n:r:st:u:w:x:y:zp:P:")) !=
            -1) {
         switch (opt) {
             case '0':
@@ -277,6 +280,30 @@ int main(int argc, char *argv[])
                     goto free_mem;
                 }
                 break;
+            
+            case 'p':
+            case 'P': {
+                if (!optarg[0]) {
+                    fprintf(stderr, "%s: value of -%c cannot be empty.\n",
+                            argv[0], opt);
+                    print_usage(argv[0]);
+                    goto free_mem;
+                }
+
+                if (opt == 'p') {
+                    if (fs_portmap_parse(&g_ctx.port_white, optarg) < 0) {
+                        fprintf(stderr, "%s: invalid port spec for -p: %s\n",
+                                argv[0], optarg);
+                        goto free_mem;
+                    }
+                } else {
+                    if (fs_portmap_parse(&g_ctx.port_black, optarg) < 0) {
+                        fprintf(stderr, "%s: invalid port spec for -P: %s\n",
+                                argv[0], optarg);
+                        goto free_mem;
+                    }
+                }
+            } break;
 
             case 'x':
                 tmp = strtoull(optarg, NULL, 0);
@@ -488,6 +515,13 @@ free_mem:
 
     if (g_ctx.iface) {
         free(g_ctx.iface);
+    }
+    if (g_ctx.port_white) {
+        free(g_ctx.port_white);
+    }
+
+    if (g_ctx.port_black) {
+        free(g_ctx.port_black);
     }
 
     return exitcode;
