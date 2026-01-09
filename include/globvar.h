@@ -48,6 +48,8 @@ struct fs_context {
     /* -x */ uint32_t fwmask;
     /* -y */ int dynamic_pct;
     /* -z */ int use_iptables;
+    /* -p */ uint8_t *port_white;
+    /* -P */ uint8_t *port_black;
 };
 
 extern struct fs_context g_ctx;
