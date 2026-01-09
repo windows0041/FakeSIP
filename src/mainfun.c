@@ -280,7 +280,8 @@ int main(int argc, char *argv[])
                 }
                 break;
             
-            case 'p': {
+            case 'p':
+            case 'P': {
                 if (!optarg || !optarg[0]) {
                     fprintf(stderr,
                             "%s: value of -%c cannot be empty.\n",
