@@ -39,7 +39,7 @@
 #include "logging.h"
 #include "payload.h"
 #include "srcinfo.h"
-
+#include "portmap.h"
 #define NO_SNAT   0
 #define NEED_SNAT 1
 
@@ -373,6 +373,33 @@ int fs_rawsend_handle(struct sockaddr_ll *sll, uint8_t *pkt_data, int pkt_len,
     if (!g_ctx.silent) {
         ipaddr_to_str(saddr, src_ip_str);
         ipaddr_to_str(daddr, dst_ip_str);
+    }
+
+    {
+        uint16_t sport = ntohs(udph->source);
+        uint16_t dport = ntohs(udph->dest);
+
+        if (g_ctx.port_white) {
+            if (!(fs_portmap_get(g_ctx.port_white, sport) ||
+                  fs_portmap_get(g_ctx.port_white, dport))) {
+                if (!g_ctx.silent) {
+                    E_INFO("%s:%u ===(SKIP)=== %s:%u", src_ip_str, sport,
+                           dst_ip_str, dport);
+                }
+                return NF_ACCEPT;
+            }
+        }
+
+        if (g_ctx.port_black) {
+            if (fs_portmap_get(g_ctx.port_black, sport) ||
+                fs_portmap_get(g_ctx.port_black, dport)) {
+                if (!g_ctx.silent) {
+                    E_INFO("%s:%u ===(SKIP)=== %s:%u", src_ip_str, sport,
+                           dst_ip_str, dport);
+                }
+                return NF_ACCEPT;
+            }
+        }
     }
 
     if (sll->sll_pkttype == PACKET_HOST) {
