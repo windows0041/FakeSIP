@@ -283,25 +283,19 @@ int main(int argc, char *argv[])
             case 'p':
             case 'P': {
                 if (!optarg || !optarg[0]) {
-                    fprintf(stderr,
-                            "%s: value of -%c cannot be empty.\n",
-                            argv[0], opt);
+                    fprintf(stderr, "%s: value of -%c cannot be empty.\n", argv[0], opt);
                     print_usage(argv[0]);
                     goto free_mem;
                 }
 
                 if (opt == 'p') {
                     if (fs_portmap_parse(&g_ctx.port_white, optarg) < 0) {
-                        fprintf(stderr,
-                                "%s: invalid port spec for -p: %s\n",
-                                argv[0], optarg);
+                        fprintf(stderr, "%s: invalid port spec for -p: %s\n", argv[0], optarg);
                         goto free_mem;
                     }
                 } else {
                     if (fs_portmap_parse(&g_ctx.port_black, optarg) < 0) {
-                        fprintf(stderr,
-                                "%s: invalid port spec for -P: %s\n",
-                                argv[0], optarg);
+                        fprintf(stderr, "%s: invalid port spec for -P: %s\n", argv[0], optarg);
                         goto free_mem;
                     }
                 }
